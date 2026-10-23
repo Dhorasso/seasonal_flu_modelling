@@ -34,6 +34,7 @@ Alternatively, download the repository as a ZIP file from the [GitHub repository
 │   └── fig_sim/            # Figures from the simulation study
 ├── scripts/                # Entry-point and plotting scripts
 ├── src/                    # Model and inference code
+├── LICENSE
 └── README.md
 ```
 
