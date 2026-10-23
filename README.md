@@ -1,6 +1,6 @@
 # Time-varying transmission dynamics in seasonal influenza
 
-Code accompanying the paper *"Bayesian inference for time-varying transmission in seasonal influenza: An application to Irish hospitalisation data"*. The model treat transmission as a Gaussian random walk and inference is perform using fixed-lag particle filter within particle marginal Metropolis–Hastings.
+Code accompanying the paper *"Bayesian inference for time-varying transmission in seasonal influenza: An application to Irish hospitalisation data"*. The model treat transmission rate as a Gaussian random walk and inference is perform using fixed-lag particle filter within particle marginal Metropolis–Hastings.
 
 ## Repository structure
 
