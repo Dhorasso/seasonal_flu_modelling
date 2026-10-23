@@ -66,7 +66,7 @@ Bayesian inference is performed using particle marginal Metropolis–Hastings (P
 
 The repository includes scripts for both real-data analyses of influenza hospitalisations in Ireland and simulation studies.
 
-## Data processing 
+## Note on the data
 
 For the purposes of this repository, reported counts below five were removed from the raw data series. The script provided in this repository imputes integer values between 0 and 4 for missing observations.
 
