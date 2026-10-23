@@ -2,7 +2,26 @@
 
 Code accompanying the paper *"Bayesian inference for time-varying transmission in seasonal influenza: An application to Irish hospitalisation data"*. The model treat transmission rate as a Gaussian random walk and inference is perform using fixed-lag particle filter within particle marginal Metropolis–Hastings.
 
-## Repository structure
+## Getting started
+
+### 1. Clone the repository
+
+Clone the GitHub repository to your local machine using Git:
+
+```bash
+git clone https://github.com/Dhorasso/Age-Renewal-SMC.git
+```
+
+Navigate into the project directory:
+
+```bash
+cd Age-Renewal-SMC
+```
+
+Alternatively, you can download the repository as a ZIP file from the [GitHub repository](https://github.com/Dhorasso/Age-Renewal-SMC) by clicking **Code → Download ZIP**.
+
+### 2. Repository structure
+
 
 ```
 .
