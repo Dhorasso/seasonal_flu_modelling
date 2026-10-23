@@ -1,9 +1,6 @@
-# Sequential Bayesian analysis of time-varying transmission in stratified epidemic renewal models
+# Time-varying transmission dynamics in seasonal influenza
 
-Code accompanying the paper *"Sequential Bayesian analysis of time-varying
-transmission in stratified epidemic renewal models"*. The model is a
-Bayesian age-stratified renewal model with time-varying, age-specific
-susceptibility, fitted with a block SMC² algorithm.
+Code accompanying the paper *"Bayesian inference for time-varying transmission in seasonal influenza: An application to Irish hospitalisation data"*. The model treat transmission as a Gaussian random walk and inference is perform using fixed-lag particle filter within particle marginal Metropolis–Hastings.
 
 ## Repository structure
 
@@ -11,8 +8,8 @@ susceptibility, fitted with a block SMC² algorithm.
 .
 ├── data/
 │   ├── simulated/          # cached synthetic datasets 
-│   ├── real/                # Irish COVID-19 surveillance data 
-│   └── contact_matrices/    # contact matrices + age distribution
+│   └── real/                # Laboratory-confirmed inpatient cases in Ireland (2022/2023-2025/2026)
+│   
 ├── figures/
 │   ├── real_data/            # figures generated from the real-data analysis
 │   └── sim_data/             # figures generated from the simulation study
@@ -34,22 +31,4 @@ susceptibility, fitted with a block SMC² algorithm.
 | `run_1age_covid.R` | homogeneous EpiSSM | real total daily cases (`data/real/Covid_Data_Ireland.csv`) |
 | `run_epinow2.R` | Epinow2 Model| real total daily cases (`data/real/Covid_Data_Ireland.csv`) |
 
-
-`run_pmmh_ireland.R` shows that PMMH() is an alternative to SMC2(): it reuses the exact same SSM and (almost) the exact
-same opts as run_ireland_analysis.R, only adding the MCMC-specific fields (iterations, nChains, burnin, thin). The
-same pattern works for any other model/data combination already set up for SMC2() in this repo — e.g. EpiSSM_1age on the real
-1-age series, or EpiSSM on the simulated multi-age dataset: build opts the way the corresponding SMC2 script already does, add
-the MCMC fields, and call PMMH(SSM, opts) instead of SMC2(SSM, opts). 
-PMMH() requires the BayesianTools package (install.packages("BayesianTools")); it isn’t needed for any of the SMC2
-based scripts.
-
-Plot of the filtering-distribution are save in  `figures/real_data/` or `figures/sim_data/`.
-
-**Load order.** in most scripts you only need:
-
-```r
-source("src/smc2.R")                # or source("src/pmmh.R")
-source("src/marginal_state.R")      # or source("src/posterior_marginal.R")
-source("src/delay_distributions.R")
-```
 
