@@ -70,7 +70,7 @@ The repository includes scripts for both real-data analyses of influenza hospita
 
 For the purposes of this repository, reported counts below five were removed from the raw data series. The script provided in this repository imputes integer values between 0 and 4 for missing observations.
 
-HSE-HPSC. *Respiratory Virus Notification Data Hub*. 2026 [cited 2026 Mar 8]. Available from: [Respiratory Virus Notification Data Hub](https://respiratoryvirus.hpsc.ie/?utm_source=chatgpt.com).
+HSE-HPSC. *Respiratory Virus Notification Data Hub*. Available from: [Respiratory Virus Notification Data Hub](https://respiratoryvirus.hpsc.ie/?utm_source=chatgpt.com).
 
 ## Output figures
 
