@@ -26,7 +26,7 @@ Alternatively, download the repository as a ZIP file from the [GitHub repository
 ```text
 .
 ├── data/
-│   ├── simulated/          # Cached synthetic datasets
+│   ├── simulated/          # Synthetic datasets
 │   └── real/               # Laboratory-confirmed inpatient cases in Ireland
 │                            # (2022/2023–2025/2026)
 ├── figures/
