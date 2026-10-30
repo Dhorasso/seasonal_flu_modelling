@@ -75,8 +75,6 @@ model_param <- list(
 #    get_season() filtering step below.
 # -----------------------------------------------------------------------------
 
-# get_season() helper -- same one used to build the csv, kept here so this
-# script is self-contained
 get_season <- function(data, season_name) {
   data %>% filter(season == !!season_name)
 }
@@ -101,7 +99,7 @@ plot(season_data$day, season_data$H_obs,
      main = paste("Season", season))
 
 # -----------------------------------------------------------------------------
-# 5. Options (these default options work well for influenza)
+# Options (these default options work well for influenza)
 # -----------------------------------------------------------------------------
 opts <- list(
   # --- Data ---
@@ -150,14 +148,7 @@ opts <- list(
   message    = TRUE
 )
 
-# -----------------------------------------------------------------------------
-# 6. Helper function (shared by every plot below)
-# -----------------------------------------------------------------------------
 
-# Ribbon plot of an Ntheta x T matrix of trajectories, with optional
-# overlaid observed points. true_points may be shorter than state_mat's
-# number of columns (e.g. when state_mat includes a forecast period) --
-# only the first length(true_points) time steps get an overlay line.
 plot_marginal_ribbon <- function(state_mat, true_points = NULL,
                                  xlab = "Days", ylab = "",
                                  color = "steelblue") {
@@ -189,20 +180,10 @@ plot_marginal_ribbon <- function(state_mat, true_points = NULL,
   p
 }
 
-# =============================================================================
-# STEP A: Quick default theta (used unless Step B is run below)
-# =============================================================================
-# Fast sanity check before spending time on a full PMMH fit: propagate the
-# model using theta ~ Uniform(0.08, 0.12) for sigma (the beta_t random-walk
-# volatility) and look at the resulting beta_t and reported-case fit.
 
-
-
-# thetaSamples <- matrix(runif(opts$Nsub, min = 0.08, max = 0.12), ncol = 1)
-# colnames(thetaSamples) <- "sigma"
 
 # -----------------------------------------------------------------------------
-# STEP B: Estimate theta with PMMH 
+# Estimate theta with PMMH 
 # -----------------------------------------------------------------------------
 # 
 mcmcResults <- PMMH(EpiSSM_SEIHR, opts)
