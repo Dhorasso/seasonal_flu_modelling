@@ -38,7 +38,7 @@ library(patchwork)
 library(cowplot)
 library(writexl)     # for exporting the final trajectories to .xlsx
 library(zoo)
-
+library(readxl)
 
 source("src/EpiSSM_SEIHR.R")
 source("src/ParticleFilter.R")
@@ -196,18 +196,13 @@ plot_marginal_ribbon <- function(state_mat, true_points = NULL,
 # model using theta ~ Uniform(0.08, 0.12) for sigma (the beta_t random-walk
 # volatility) and look at the resulting beta_t and reported-case fit.
 
-opts$Nsub <- 100   # number of theta draws to propagate through the model
-set.seed(123)
+
 
 # thetaSamples <- matrix(runif(opts$Nsub, min = 0.08, max = 0.12), ncol = 1)
 # colnames(thetaSamples) <- "sigma"
 
 # -----------------------------------------------------------------------------
-# STEP B: Estimate theta with PMMH (optional)
-# Uncomment the block below to fit theta from the data instead of using the
-# default draws above. thetaSamples is overwritten with posterior draws, so
-# everything below this point automatically uses the fitted model. 
-# Users should save mcmcResults if they want to user that latter on
+# STEP B: Estimate theta with PMMH 
 # -----------------------------------------------------------------------------
 # 
 mcmcResults <- PMMH(EpiSSM_SEIHR, opts)
@@ -216,6 +211,9 @@ marginalPlot(mcmcResults)
 saveRDS(mcmcResults, file = paste0("pmcmc_real_", gsub("/", "-", season), ".rds"))
 # mcmcResults <- readRDS(paste0("pmcmc_real_", gsub("/", "-", season), ".rds"))
 summary(mcmcResults)
+
+opts$Nsub <- 100   # number of theta draws to propagate through the model
+set.seed(123)
 
 thetaSamples <- getSample(mcmcResults, parametersOnly = TRUE, thin = 1,
                            burnin = 1000, numSamples = opts$Nsub, coda = FALSE)
@@ -242,14 +240,9 @@ thetaSamples <- getSample(mcmcResults, parametersOnly = TRUE, thin = 1,
 # opts$forecastingHorizon <- 14
 # opts$beta_path <- beta_scenario(seq(opts$T + 1, opts$T + opts$forecastingHorizon))
 
-# =============================================================================
-# REPLACE everything from "STEP C" to the end of main_seihr_real_data.R
-# with this block.  Add library(readxl) near the other library() calls.
-# =============================================================================
-library(readxl)
 
 # =============================================================================
-# STEP C: Propagate theta through the model, detect change points, and plot
+# Propagate theta through the model, detect change points, and plot
 # =============================================================================
 marg <- PosteriorMarginal(thetaSamples, EpiSSM_SEIHR, opts)
 
@@ -271,22 +264,21 @@ day_full <- if (n_total > length(day_obs)) {
 
 
 # =============================================================================
-# STEP plot
+# plot
 # =============================================================================
 
-# ---- colours and legend labels ----------------------------------------------
 col_pf_beta   <- "#CD6600"
 col_pf_report <- "blue3"
 
 
-# ---- Panel 1: beta_t ---------------------------------------------------------
+# ---- beta_t ---------------------------------------------------------
 p_beta <- plot_marginal_ribbon(
   beta_mat,
   ylab  = bquote(bold("Transmission rate ") ~ beta[t]),
   color = col_pf_beta
 ) 
 
-# ---- Panel 2: reported cases -----------------------------------
+# ---- reported cases -----------------------------------
 
 p_report <- plot_marginal_ribbon(
   report_mat, true_points = NULL,
@@ -304,7 +296,7 @@ print(fig_marginal)
 
 
 # =============================================================================
-# STEP D: Save trajectories
+# Save trajectories
 # =============================================================================
 
 reported_full <- rep(NA_real_, n_total)
