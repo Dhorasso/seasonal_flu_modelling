@@ -5,8 +5,6 @@
 #   Fig 3  reported (inpatient) cases               
 #   Fig 4  P(R_eff(t) > 1 | y_{1:T}), all seasons in a single graph
 #   Table 1  MAE and RMSE of the reported cases (PF vs Oza)
-#   Table 2  peak beta_t / peak R_eff(t) and their dates, PF (median, 95% CrI)
-#            vs Oza (point estimate), using t >= t_min_peak only
 # =============================================================================
 
 library(truncnorm)
@@ -35,14 +33,13 @@ Nsub    <- 100           # number of theta draws propagated through the model
 # Must match what was used when the saved fits were produced
 stochastic <- TRUE       # TRUE = chain-binomial model, FALSE = deterministic ODE
 
-t_min_peak <- 50         # peaks / peak dates are searched over days t >= t_min_peak
 
 oza_name      <- "Oza et al."
 cp_file       <- "data/real/traj_est_oza.xlsx"   # one sheet per season (e.g. "2025-2026")
 cp_S_col      <- "S"                        # name of the S column in that file
 cp_report_col <- "h_obs"                    # Oza reported cases column
 
-col_pf_rt     <- "#CD6600"      # R_eff and beta (orange)
+col_pf_rt     <- "#CD6600"      # R_eff and beta 
 col_pf_report <- "blue3"        # PF reported cases
 col_oza       <- "green4"
 col_obs       <- "red"
@@ -91,12 +88,12 @@ rmse <- function(pred, obs) {
   ok <- is.finite(pred) & is.finite(obs)
   sqrt(mean((pred[ok] - obs[ok])^2))
 }
-mae <- function(pred, obs) {          # mean absolute error
+mae <- function(pred, obs) {         
   ok <- is.finite(pred) & is.finite(obs)
   mean(abs(pred[ok] - obs[ok]))
 }
 
-probs <- c(0.025, 0.25, 0.5, 0.75, 0.975)   # 95% and 50% intervals
+probs <- c(0.025, 0.25, 0.5, 0.75, 0.975)   
 quant_df <- function(mat, season) {
   q <- as.data.frame(t(apply(mat, 2, quantile, probs = probs, na.rm = TRUE)))
   names(q) <- c("lo", "q25", "q50", "q75", "hi")
@@ -104,13 +101,7 @@ quant_df <- function(mat, season) {
   q
 }
 
-# Peak value and day of the peak, for EVERY posterior draw, over days >= tmin
-peak_stats <- function(mat, days, tmin) {
-  keep <- which(days >= tmin)
-  sub  <- mat[, keep, drop = FALSE]
-  j    <- max.col(sub, ties.method = "first")
-  list(peak = sub[cbind(seq_len(nrow(sub)), j)], date = days[keep][j])
-}
+
 # "median (2.5%, 97.5%)" string
 ci_str <- function(x, d) {
   q <- unname(quantile(x, c(0.5, 0.025, 0.975), na.rm = TRUE))
@@ -126,7 +117,7 @@ one_season <- function(season) {
   sd <- flu_seasons %>% filter(season == !!season)
   if (nrow(sd) == 0) stop("No data for season ", season)
   season_data <- data.frame(day = sd$day, H_obs = sd$reports) 
-  ## impute missing reports ( comment the line below you have the complete data) # lamda is the poisson rate
+
   season_data <- impute_small_counts(season_data, lambda = 1.26, seed = 123)
   opts <- make_opts(season_data)
   
@@ -134,7 +125,6 @@ one_season <- function(season) {
   if (!file.exists(rds)) stop("Cannot find saved fit: ", rds)
   mcmcResults <- readRDS(rds)
   
-  # NB: BayesianTools::getSample() uses `start` (not `burnin`) to drop burn-in
   theta_all <- as.matrix(getSample(mcmcResults, parametersOnly = TRUE,
                                    start = burnin, thin = 1, coda = FALSE))
   thetaSamples <- getSample(mcmcResults, parametersOnly = TRUE, start = burnin,
@@ -156,7 +146,7 @@ one_season <- function(season) {
   pf_obs  <- quant_df(report_mat, season)
   days    <- pf_rt$day
   
-  # P(R_eff(t) > 1 | y_{1:T}): share of posterior draws with R_eff(t) > 1
+  # P(R_eff(t) > 1)
   pf_prob <- data.frame(season = season, day = days,
                         prob = colMeans(rt_mat > 1, na.rm = TRUE))
   
@@ -188,27 +178,11 @@ one_season <- function(season) {
     mae_oza  = mae(oza_med, obs$y), rmse_oza = rmse(oza_med, obs$y)
   )
   
-  # ---- peak table rows (days >= t_min_peak)
-  ps_b <- peak_stats(beta_mat, days, t_min_peak)
-  ps_r <- peak_stats(rt_mat,   days, t_min_peak)
-  pk_pf <- data.frame(Season = season, Method = "PF (median)",
-                      beta = ci_str(ps_b$peak, 3), beta_day = ci_str(ps_b$date, 0),
-                      rt   = ci_str(ps_r$peak, 2), rt_day   = ci_str(ps_r$date, 0))
-  
-  oza_peak <- function(y) {
-    k <- which(days >= t_min_peak)
-    j <- k[which.max(y[k])]
-    list(v = y[j], d = days[j])
-  }
-  ob_ <- oza_peak(beta_oza); or_ <- oza_peak(rt_oza_v)
-  pk_oza <- data.frame(Season = season, Method = oza_name,
-                       beta = sprintf("%.3f", ob_$v), beta_day = sprintf("%d", ob_$d),
-                       rt   = sprintf("%.2f", or_$v), rt_day   = sprintf("%d", or_$d))
+
   
   list(pf_rt = pf_rt, pf_beta = pf_beta, pf_obs = pf_obs, pf_prob = pf_prob,
        oza_rt = oza_rt, oza_beta = oza_beta, oza_obs = oza_obs,
-       obs = obs, rmse = rm_tab, peaks = rbind(pk_pf, pk_oza),
-       h_med = h_med)
+       obs = obs, rmse = rm_tab, h_med = h_med)
 }
 
 res <- lapply(seasons, one_season)
@@ -229,7 +203,7 @@ print(data.frame(season = seasons,
 print(rmse_tab)
 
 # =============================================================================
-# 3. Figures 1 and 2: R_eff(t) and beta_t  (2 x 2 facets, shared legend)
+# 3. Figures 1 and 2: R_eff(t) and beta_t 
 # =============================================================================
 lab_pf  <- "PF (median)"
 lab_oza <- oza_name
@@ -278,7 +252,7 @@ print(p_beta)
 ggsave("figures/fig_real/fig_beta_real.pdf", p_beta, width = 10, height = 6)
 
 # =============================================================================
-# 4. Figure 3: reported cases, 2 x 2 facets (shared legend)
+# 4. Figure 3: reported cases
 # =============================================================================
 lab_obs     <- "Observed data"
 lab_pf_rep  <- "PF (median)"
@@ -306,15 +280,14 @@ print(p_obs)
 ggsave("figures/fig_real/fig_obs_real.pdf", p_obs, width = 10, height = 6)
 
 # =============================================================================
-# 5. Figure 4: P(R_eff(t) > 1 | y_{1:T}), faceted by season
+# 5. Figure 4: P(R_eff(t) > 1) by season
 # =============================================================================
-col_traj   <- "#CD950C"   # yellow-orange trajectory
-col_peak   <- "#8A2BE2"   # violet: peak line, point and label
-col_lo     <- "green4"    # 0.05 line and axis label
-col_hi     <- "red"       # 0.95 line and axis label
+col_traj   <- "#CD950C"   
+col_peak   <- "#8A2BE2"   
+col_lo     <- "green4"    
+col_hi     <- "red"      
 
-# Day of the admissions peak per season (peak of the 7-day centred moving
-# average of observed reports). Swap `y_ma` for `y` to use the raw counts.
+
 peak_obs <- obs_df %>%
   dplyr::group_by(season) %>%
   dplyr::slice_max(y, n = 1, with_ties = FALSE) %>%
