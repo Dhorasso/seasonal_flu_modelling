@@ -1,10 +1,6 @@
 # =============================================================================
 # 
-# Simulated-data results: 3 x 2 figure
-#   rows    = scenarios A (sinusoid), B (sinusoid with intervention), C (piecewise)
-#   left    = transmission rate beta_t   (true, PF posterior, Oza et al.)
-#   right   = reported cases             (data, PF posterior predictive, Oza et al.)
-# Uses the SAVED PMMH fits (pmcmc_sim_<scenario>.rds)
+# Simulated-data results
 # =============================================================================
 
 library(truncnorm)
@@ -20,13 +16,10 @@ source("src/ParticleFilter.R")
 source("src/PMMH.R")
 source("src/PosteriorMarginal.R")
 
-# =============================================================================
-# 1. USER CHOICES
-# =============================================================================
 scenarios <- c("sinusoid", "sinusoid_intervention", "piecewise")
 panel_ids <- c("A", "B", "C")
 scen_labels <- c("A: Sinusoid", "B: Sinusoid with intervention", "C: Piecewise")
-traj_files <- paste0("data/simulated/traj_", scenarios, ".csv")       # edit here if names differ
+traj_files <- paste0("data/simulated/traj_", scenarios, ".csv")      
 
 burnin <- 1000       # iterations (per chain) discarded before sampling theta
 Nsub   <- 100        # number of theta draws propagated through the model
@@ -43,8 +36,7 @@ col_true      <- "red"
 beta_ylim   <- c(0, 0.6)
 report_ylim <- NULL          # e.g. c(0, 160); NULL = automatic
 
-# Column names in the traj_*.csv files (matched ignoring case, spaces,
-# underscores and dots, so "true beta", "true_beta" and "TrueBeta" all work)
+
 col_report    <- "reports"      # simulated reported cases (data)
 col_true_beta <- "beta_t_true"  # true beta_t
 col_oza_beta  <- "beta"         # Oza et al. beta_t
@@ -81,9 +73,7 @@ make_opts <- function(sim_data) {
   )
 }
 
-# =============================================================================
-# 2. Helpers
-# =============================================================================
+
 norm_nm <- function(x) tolower(gsub("[^A-Za-z0-9]", "", x))
 
 get_col <- function(df, cands, what) {
@@ -130,9 +120,6 @@ base_theme <- theme_bw() +
         axis.text  = element_text(face = "bold", size = 10),
         plot.tag   = element_text(face = "bold", size = 18))
 
-# =============================================================================
-# 3. One scenario -> (beta panel, report panel)
-# =============================================================================
 lab_true <- "True"
 lab_pf   <- "PF (median)"
 lab_oza  <- oza_name
@@ -141,7 +128,7 @@ lab_obs  <- "Observed data"
 one_scenario <- function(i, show_x) {
   scen <- scenarios[i]
   
-  # ---- data and Oza estimates, read from the csv (nothing is simulated)
+  # ---- data and Oza estimates, read from the csv
   df <- read.csv(traj_files[i], check.names = FALSE)
   nr <- nrow(df)
   day_hit <- match(norm_nm(col_day_cands), norm_nm(names(df)))
@@ -187,7 +174,7 @@ one_scenario <- function(i, show_x) {
     RMSE_report = c(rmse(qr$q50, y_obs),     rmse(cases_oza, y_obs))
   )
   
-  # ---------------- left: transmission rate ----------------
+  # ---------------- transmission rate ----------------
   p_beta <- ggplot() +
     geom_ribbon(data = qb, aes(day, ymin = lo,  ymax = hi),  fill = col_pf_beta, alpha = 0.15) +
     geom_ribbon(data = qb, aes(day, ymin = q25, ymax = q75), fill = col_pf_beta, alpha = 0.35) +
@@ -205,7 +192,7 @@ one_scenario <- function(i, show_x) {
          tag = panel_ids[i]) +
     base_theme + legend_theme()
   
-  # ---------------- right: reported cases ----------------
+  # ---------------- reported cases ----------------
   p_rep <- ggplot() +
     geom_ribbon(data = qr, aes(day, ymin = lo,  ymax = hi),  fill = col_pf_report, alpha = 0.15) +
     geom_ribbon(data = qr, aes(day, ymin = q25, ymax = q75), fill = col_pf_report, alpha = 0.35) +
@@ -232,7 +219,7 @@ panels <- lapply(seq_along(scenarios), function(i)
   one_scenario(i, show_x = (i == length(scenarios))))
 
 # =============================================================================
-# 4. Assemble 3 x 2: rows = scenarios (A, B, C); left = beta, right = cases
+# plot
 # =============================================================================
 fig_sim <- wrap_plots(
   unlist(lapply(panels, function(p) list(p$beta, p$rep)), recursive = FALSE),
@@ -244,7 +231,7 @@ dir.create("figures/fig_sim", showWarnings = FALSE)
 ggsave("figures/fig_sim/fig_sim_3x2.pdf", fig_sim, width = 12, height = 10)
 
 # =============================================================================
-# 5. Table: MAE and RMSE for beta_t (vs true beta) and for reported cases
+# Table: MAE and RMSE for beta_t (vs true beta) and for reported cases
 #    (vs observed data), PF vs Oza et al., all scenarios
 # =============================================================================
 metrics_tab <- bind_rows(lapply(panels, `[[`, "metrics")) %>%
