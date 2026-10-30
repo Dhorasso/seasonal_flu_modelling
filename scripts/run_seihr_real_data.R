@@ -1,26 +1,6 @@
 
 # =============================================================================
 # main_seihr_real_data.R
-#
-# HOW TO RUN THIS SCRIPT
-#   1. Set the season to fit or your own data -- it just needs a day column and a case-count
-#      column (see the note in section 4).
-#   2. Source this file top to bottom. By default it propagates the model
-#      using a wide default theta distribution (fast, no fitting) and
-#      produces beta_t / reported-case / predictive-log-likelihood plots
-#      from that.
-#   3. To fit theta to the data instead, uncomment the "Estimate theta with
-#      PMMH" block below -- this replaces the default theta draws with
-#      posterior draws from the fit (can take a while, ~1h40 in my HPSC PC), and everything downstream (plots + Excel export) will then
-#      reflect the fitted model.
-#   4. Optionally extend the run past the last observed day by setting
-#      opts$forecastingHorizon (see the "Optional: forecast" block).
-#   5. Sustained drops in predictive fit are flagged automatically (0-5
-#      change points, see src/ChangePointDetection.R) and marked with
-#      dashed vertical lines on every plot.
-#   6. The final figure is saved as a PDF in Fig_hpsc_real_data/, and the
-#      median beta_t / reported-case trajectories (plus the detected
-#      change points) are saved to an Excel file in Results/.
 # =============================================================================
 
 
