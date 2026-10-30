@@ -2,22 +2,6 @@
 
 # =============================================================================
 # main_seihr_sim_data.R
-#
-# HOW TO RUN THIS SCRIPT
-#   1. Pick (or write) a beta_t(t) scenario in section 4 -- a few examples
-#      are included (sinusoid, sinusoid + intervention, constant,
-#      decreasing logistic, piecewise). Set Tmax there too.
-#   2. Source this file top to bottom. By default it propagates the model
-#      using a wide default theta distribution (fast, no fitting) and
-#      produces beta_t / reported-case / predictive-log-likelihood plots,
-#      with the TRUE beta_t (used to simulate the data) overlaid on the
-#      beta_t panel for comparison.
-#   3. To fit theta to the data instead, uncomment the "Estimate theta with
-#      PMMH" block below -- this replaces the default theta draws with
-#      posterior draws from the fit, and everything downstream (plots +
-#      Excel export) will then reflect the fitted model.
-#   4. Optionally extend the run past the last simulated day by setting
-#      opts$forecastingHorizon (see the "Optional: forecast" block).
 # =============================================================================
 
 #===================================
@@ -32,19 +16,15 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 library(cowplot)
-library(writexl)     # for exporting the final trajectories to .xlsx
+library(writexl)   
 
 source("src/EpiSSM_SEIHR.R")
 source("src/ParticleFilter.R")
 source("src/PMMH.R")
 source("src/PosteriorMarginal.R")
-# =============================================================================
-# 2. USER CHOICES
-# =============================================================================
-
 
 # -----------------------------------------------------------------------------
-# 3. Fixed epidemiological parameters (see Oza et al (2026) paper)
+# Fixed epidemiological parameters (see Oza et al (2026) paper)
 # -----------------------------------------------------------------------------
 model_param <- list(
   Npop    = 5e6,
@@ -78,7 +58,7 @@ plot(sim_data$day, sim_data$beta_t_true,
 
 
 # -----------------------------------------------------------------------------
-# 5. Options (these default options work well for influenza)
+# Options (these default options work well for influenza)
 # -----------------------------------------------------------------------------
 opts <- list(
   # --- Data ---
@@ -130,24 +110,9 @@ opts <- list(
   message    = TRUE
 )
 
-# =============================================================================
-# STEP A: Quick default theta (used unless Step B is run below)
-# =============================================================================
-# Fast sanity check before spending time on a full PMMH fit: propagate the
-# model using theta ~ Uniform(0.06, 0.12) for sigma (the beta_t random-walk
-# volatility) and look at the resulting beta_t and reported-case fit.
-
-opts$Nsub <- 100   # number of theta draws to propagate through the model
-set.seed(123)
-
-# thetaSamples <- matrix(runif(opts$Nsub, min = 0.08, max = 0.12), ncol = 1)
-# colnames(thetaSamples) <- "sigma"
 
 # -----------------------------------------------------------------------------
-# STEP B: Estimate theta with PMMH (optional)
-# Uncomment the block below to fit theta from the data instead of using the
-# default draws above. thetaSamples is overwritten with posterior draws, so
-# everything below this point automatically uses the fitted model.
+# Estimate theta with PMMH (optional)
 # -----------------------------------------------------------------------------
 mcmcResults <- PMMH(EpiSSM_SEIHR, opts)
 marginalPlot(mcmcResults)
@@ -155,6 +120,11 @@ marginalPlot(mcmcResults)
 saveRDS(mcmcResults, file = paste0("pmcmc_sim_",scenario, ".rds"))
 # mcmcResults <- readRDS(paste0("pmcmc_sim_",scenario, ".rds"))
 summary(mcmcResults)
+
+
+opts$Nsub <- 100   # number of theta draws to propagate through the model
+set.seed(123)
+
 
 thetaSamples <- getSample(mcmcResults, parametersOnly = TRUE, thin = 1,
                           burnin = 1000, numSamples = opts$Nsub, coda = FALSE)
@@ -210,7 +180,7 @@ fig_marginal <- (p_beta + p_report) +
 print(fig_marginal)
 
 # =============================================================================
-# STEP D: Save the median trajectories (and the true beta_t) to an Excel file
+# Save the median trajectories (and the true beta_t) to an Excel file
 # =============================================================================
 beta_median   <- apply(beta_mat, 2, median)
 report_median <- apply(report_mat, 2, median)
