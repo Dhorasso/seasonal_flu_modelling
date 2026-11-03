@@ -222,7 +222,8 @@ ObsProcess <- function(X_hist, Y_hist, t, theta, opts, ...) {
       )
       
       # Gaussian observation likelihood
-      est_sd = (max(2,  mean(mu_ma7)))^0.5
+      phi <- opts$phi %||% 0.5
+      est_sd = (phi*(max(1, mu_ma7)))^0.5
       if (!is.na(Y_t)){
         logw  <- dnorm(x = Y_t, mean = mu_ma7, sd = est_sd , log = TRUE)
       }
