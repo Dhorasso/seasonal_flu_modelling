@@ -120,7 +120,10 @@ marginalPlot(mcmcResults)
 saveRDS(mcmcResults, file = paste0("pmcmc_sim_",scenario, ".rds"))
 # mcmcResults <- readRDS(paste0("pmcmc_sim_",scenario, ".rds"))
 summary(mcmcResults)
-
+plot(mcmcResults)
+marginalPlot(mcmcResults)
+correlationPlot(mcmcResults)
+gelmanDiagnostics(mcmcResults, plot=T)
 
 opts$Nsub <- 100   # number of theta draws to propagate through the model
 set.seed(123)
