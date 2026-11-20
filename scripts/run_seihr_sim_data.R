@@ -115,8 +115,7 @@ opts <- list(
 # Estimate theta with PMMH (optional)
 # -----------------------------------------------------------------------------
 mcmcResults <- PMMH(EpiSSM_SEIHR, opts)
-marginalPlot(mcmcResults)
-
+                 
 saveRDS(mcmcResults, file = paste0("pmcmc_sim_",scenario, ".rds"))
 # mcmcResults <- readRDS(paste0("pmcmc_sim_",scenario, ".rds"))
 summary(mcmcResults)
