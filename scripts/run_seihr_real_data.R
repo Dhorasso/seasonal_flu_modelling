@@ -167,11 +167,14 @@ plot_marginal_ribbon <- function(state_mat, true_points = NULL,
 # -----------------------------------------------------------------------------
 # 
 mcmcResults <- PMMH(EpiSSM_SEIHR, opts)
-marginalPlot(mcmcResults)
 
 saveRDS(mcmcResults, file = paste0("pmcmc_real_", gsub("/", "-", season), ".rds"))
 # mcmcResults <- readRDS(paste0("pmcmc_real_", gsub("/", "-", season), ".rds"))
 summary(mcmcResults)
+plot(mcmcResults)
+marginalPlot(mcmcResults)
+correlationPlot(mcmcResults)
+gelmanDiagnostics(mcmcResults, plot=T)
 
 opts$Nsub <- 100   # number of theta draws to propagate through the model
 set.seed(123)
