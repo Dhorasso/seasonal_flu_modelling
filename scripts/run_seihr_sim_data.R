@@ -51,7 +51,7 @@ plot(sim_data$day, sim_data$H_obs,
      xlab = "day", ylab = "reported cases",
      main = paste("Simulated data -", scenario))
 plot(sim_data$day, sim_data$beta_t_true,
-     xlab = "day", ylab = "beta_t",
+     xlab = "day", ylab = "beta_t", type = "l",
      main = paste("Simulated data -", scenario))
 
 
